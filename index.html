@@ -617,13 +617,13 @@
             const class_ = document.getElementById('returnStudentClass').value.trim();
             
             if (!name || !class_) {
-                showNotification('학생 이름과 학번을 모두 입력해주세요.', 'error');
+                showNotification('학생 이름과 학반을 모두 입력해주세요.', 'error');
                 return;
             }
 
             const rentalIndex = rentedUmbrellas.findIndex(r => r.name === name && r.class === class_);
             if (rentalIndex === -1) {
-                showNotification('입력하신 이름과 학번이 일치하는 대여 기록을 찾을 수 없습니다.', 'error');
+                showNotification('입력하신 이름과 학반이 일치하는 대여 기록을 찾을 수 없습니다.', 'error');
                 return;
             }
 
