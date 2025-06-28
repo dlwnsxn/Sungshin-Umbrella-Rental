@@ -466,6 +466,37 @@
                     <button class="btn" onclick="adminLogin()" style="max-width: 200px; margin: 0 auto;">로그인</button>
                 </div>
                 
+                <div class="form-group">
+                        <label>전체 우산 수량 설정</label>
+                        <input type="number" id="totalUmbrellasInput" min="1" max="100" value="20">
+                        <button class="btn" onclick="updateTotalUmbrellas()" style="margin-top: 10px;">수량 업데이트</button>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 30px; padding-top: 30px; border-top: 2px solid #e1e5e9;">
+                        <h3 style="margin-bottom: 20px; color: #333;">🔐 비밀번호 변경</h3>
+                        <label>현재 비밀번호</label>
+                        <input type="password" id="currentPassword" placeholder="현재 비밀번호">
+                        <label style="margin-top: 15px;">새 비밀번호</label>
+                        <input type="password" id="newPassword" placeholder="새 비밀번호 (최소 6자)">
+                        <label style="margin-top: 15px;">새 비밀번호 확인</label>
+                        <input type="password" id="confirmPassword" placeholder="새 비밀번호 다시 입력">
+                        <button class="btn" onclick="changeAdminPassword()" style="margin-top: 15px; background: linear-gradient(135deg, #dc3545, #c82333);">비밀번호 변경</button>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 30px; padding-top: 30px; border-top: 2px solid #e1e5e9;">
+                        <h3 style="margin-bottom: 20px; color: #333;">💾 데이터 관리</h3>
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <button class="btn" onclick="saveDataToServer()" style="flex: 1; min-width: 150px; background: linear-gradient(135deg, #28a745, #20c997);">서버에 저장</button>
+                            <button class="btn" onclick="loadDataFromServer()" style="flex: 1; min-width: 150px; background: linear-gradient(135deg, #17a2b8, #138496);">서버에서 불러오기</button>
+                            <button class="btn" onclick="exportData()" style="flex: 1; min-width: 150px; background: linear-gradient(135deg, #6f42c1, #5a32a3);">데이터 내보내기</button>
+                        </div>
+                        <div style="margin-top: 15px;">
+                            <label>데이터 가져오기</label>
+                            <input type="file" id="importFile" accept=".json" style="margin-top: 10px;">
+                            <button class="btn" onclick="importData()" style="margin-top: 10px; background: linear-gradient(135deg, #fd7e14, #e55a00);">데이터 가져오기</button>
+                        </div>
+                    </div>
+                
                 <div class="admin-content">
                     <h2>관리자 대시보드</h2>
                     <div class="admin-stats">
