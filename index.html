@@ -367,6 +367,10 @@
                         <label for="studentId">학번</label>
                         <input type="text" id="studentId" placeholder="예: 10101" required>
                     </div>
+                    <div class="form-group">
+                        <label for="phoneNumber">전화번호</label>
+                        <input type="tel" id="phoneNumber" placeholder="예: 010-1234-5678" required>
+                    </div>
                     
                     <div class="checkbox-group">
                         <div class="checkbox-item">
@@ -539,12 +543,14 @@
                 // 다른 사용자의 대여/반납 시뮬레이션 (10% 확률)
                 if (Math.random() > 0.9 && this.rentals.length < 10) {
                     const fakeNames = ['김학생', '이학생', '박학생', '최학생'];
+                    const fakePhones = ['010-1234-5678', '010-2345-6789', '010-3456-7890', '010-4567-8901'];
                     const fakeName = fakeNames[Math.floor(Math.random() * fakeNames.length)];
+                    const fakePhone = fakePhones[Math.floor(Math.random() * fakePhones.length)];
                     const fakeId = `${Math.ceil(Math.random() * 3)}-${Math.ceil(Math.random() * 5)}-${String(Math.ceil(Math.random() * 30)).padStart(2, '0')}`;
                     
-                    this.addRental(fakeName, fakeId, '장우산', false);
+                    this.addRental(fakeName, fakeId, fakePhone, '장우산', false);
                     if (this.isAdmin) {
-                        this.showAlert(`실시간 알림: ${fakeName}(${fakeId})님이 우산을 대여했습니다.`, 'success');
+                        this.showAlert(`실시간 알림: ${fakeName}(${fakeId}, ${fakePhone})님이 우산을 대여했습니다.`, 'success');
                     }
                 }
             }
@@ -600,11 +606,12 @@
                 return true;
             }
 
-            addRental(name, studentId, type, showAlert = true) {
+            addRental(name, studentId, phoneNumber, type, showAlert = true) {
                 const rental = {
                     id: Date.now(),
                     name,
                     studentId,
+                    phoneNumber,
                     type,
                     rentDate: new Date(),
                     dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24시간 후
@@ -622,7 +629,7 @@
                 // 관리자에게 실시간 알림
                 if (this.isAdmin && showAlert) {
                     setTimeout(() => {
-                        this.showAlert(`실시간 알림: ${name}(${studentId})님이 우산을 대여했습니다.`, 'warning');
+                        this.showAlert(`실시간 알림: ${name}(${studentId}, ${phoneNumber})님이 우산을 대여했습니다.`, 'warning');
                     }, 1000);
                 }
             }
@@ -690,7 +697,7 @@
                             <div class="rental-info">
                                 <div class="rental-name">${rental.name} (${rental.studentId})</div>
                                 <div class="rental-details">
-                                    ${rental.type} | 반납 예정: ${dueDate}
+                                    📞 ${rental.phoneNumber} | ${rental.type} | 반납 예정: ${dueDate}
                                     ${isOverdue ? ' | ⚠️ 연체됨' : ''}
                                 </div>
                             </div>
@@ -758,9 +765,17 @@
             
             const name = document.getElementById('studentName').value.trim();
             const studentId = document.getElementById('studentId').value.trim();
+            const phoneNumber = document.getElementById('phoneNumber').value.trim();
             const type = document.getElementById('umbrellaType').value;
             const returnAgreement = document.getElementById('returnAgreement').checked;
             const compensationAgreement = document.getElementById('compensationAgreement').checked;
+
+            // 전화번호 형식 검증
+            const phoneRegex = /^01[0-9]-\d{3,4}-\d{4}$/;
+            if (!phoneRegex.test(phoneNumber)) {
+                umbrellaManager.showAlert('전화번호 형식이 올바르지 않습니다. (예: 010-1234-5678)', 'error');
+                return;
+            }
 
             if (!returnAgreement || !compensationAgreement) {
                 umbrellaManager.showAlert('모든 약관에 동의해주세요.', 'error');
@@ -782,7 +797,7 @@
                 return;
             }
 
-            umbrellaManager.addRental(name, studentId, type);
+            umbrellaManager.addRental(name, studentId, phoneNumber, type);
             this.reset();
         });
 
