@@ -426,6 +426,20 @@
                 </form>
             </div>
 
+            <div class="password-change">
+                <h3>🌂 우산 개수 관리</h3>
+                <form id="umbrellaCountForm">
+                    <div class="form-group">
+                        <label for="totalUmbrellaCount">총 우산 개수</label>
+                        <input type="number" id="totalUmbrellaCount" min="1" max="1000" required>
+                    </div>
+                    <div class="form-group">
+                        <small style="color: #666;">현재 대여 중인 우산: <span id="currentRentedCount">0</span>개</small>
+                    </div>
+                    <button type="submit" class="btn">우산 개수 변경</button>
+                </form>
+            </div>
+
             <div class="rental-list">
                 <div class="admin-controls">
                     <button class="btn" onclick="refreshRentals()">🔄 새로고침</button>
@@ -445,7 +459,7 @@
         class UmbrellaManager {
             constructor() {
                 this.rentals = this.loadRentals();
-                this.totalUmbrellas = 50;
+                this.totalUmbrellas = this.loadTotalUmbrellas();
                 this.adminPassword = this.loadAdminPassword();
                 this.isAdmin = false;
                 this.connectionId = this.generateConnectionId();
@@ -493,15 +507,29 @@
 
             syncWithServer() {
                 // 서버와 데이터 동기화 시뮬레이션
-                const savedData = localStorage.getItem('umbrellaRentals');
-                if (savedData) {
-                    const serverData = JSON.parse(savedData);
-                    if (JSON.stringify(this.rentals) !== JSON.stringify(serverData)) {
-                        this.rentals = serverData;
+                const savedRentals = localStorage.getItem('umbrellaRentals');
+                const savedTotal = localStorage.getItem('totalUmbrellas');
+                
+                if (savedRentals) {
+                    const serverRentals = JSON.parse(savedRentals);
+                    if (JSON.stringify(this.rentals) !== JSON.stringify(serverRentals)) {
+                        this.rentals = serverRentals;
                         this.updateStats();
                         this.updateRentalsList();
                         if (this.isAdmin) {
-                            this.showAlert('실시간 업데이트: 다른 사용자의 변경사항이 반영되었습니다.', 'warning');
+                            this.showAlert('실시간 업데이트: 대여 현황이 동기화되었습니다.', 'warning');
+                        }
+                    }
+                }
+                
+                if (savedTotal) {
+                    const serverTotal = parseInt(savedTotal);
+                    if (this.totalUmbrellas !== serverTotal) {
+                        this.totalUmbrellas = serverTotal;
+                        this.updateStats();
+                        if (this.isAdmin) {
+                            document.getElementById('totalUmbrellaCount').value = this.totalUmbrellas;
+                            this.showAlert('실시간 업데이트: 우산 총 개수가 동기화되었습니다.', 'warning');
                         }
                     }
                 }
@@ -538,6 +566,38 @@
             saveAdminPassword(password) {
                 localStorage.setItem('adminPassword', password);
                 this.adminPassword = password;
+            }
+
+            loadTotalUmbrellas() {
+                const saved = localStorage.getItem('totalUmbrellas');
+                return saved ? parseInt(saved) : 50;
+            }
+
+            saveTotalUmbrellas(count) {
+                localStorage.setItem('totalUmbrellas', count.toString());
+                this.totalUmbrellas = count;
+            }
+
+            updateUmbrellaCount(newCount) {
+                const currentRented = this.rentals.length;
+                
+                if (newCount < currentRented) {
+                    this.showAlert(`현재 ${currentRented}개의 우산이 대여 중입니다. 총 개수는 ${currentRented}개 이상이어야 합니다.`, 'error');
+                    return false;
+                }
+
+                const oldCount = this.totalUmbrellas;
+                this.saveTotalUmbrellas(newCount);
+                this.updateStats();
+                
+                this.showAlert(`우산 총 개수가 ${oldCount}개에서 ${newCount}개로 변경되었습니다.`, 'success');
+                
+                // 실시간 알림
+                setTimeout(() => {
+                    this.showAlert(`실시간 업데이트: 관리자가 우산 총 개수를 ${newCount}개로 변경했습니다.`, 'warning');
+                }, 1000);
+                
+                return true;
             }
 
             addRental(name, studentId, type, showAlert = true) {
@@ -600,9 +660,16 @@
                 const available = this.totalUmbrellas - rented;
                 const overdue = this.rentals.filter(r => new Date() > new Date(r.dueDate)).length;
 
+                document.getElementById('totalUmbrellas').textContent = this.totalUmbrellas;
                 document.getElementById('availableUmbrellas').textContent = available;
                 document.getElementById('rentedUmbrellas').textContent = rented;
                 document.getElementById('overdueUmbrellas').textContent = overdue;
+                
+                // 관리자 패널의 현재 대여 수도 업데이트
+                const currentRentedElement = document.getElementById('currentRentedCount');
+                if (currentRentedElement) {
+                    currentRentedElement.textContent = rented;
+                }
             }
 
             updateRentalsList() {
@@ -649,6 +716,7 @@
                 if (password === this.adminPassword) {
                     this.isAdmin = true;
                     document.getElementById('adminPanel').style.display = 'block';
+                    document.getElementById('totalUmbrellaCount').value = this.totalUmbrellas;
                     this.updateRentalsList();
                     this.showAlert('관리자 로그인 성공', 'success');
                     return true;
@@ -745,6 +813,19 @@
             if (umbrellaManager.changePassword(newPassword, confirmPassword)) {
                 this.reset();
             }
+        });
+
+        document.getElementById('umbrellaCountForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const newCount = parseInt(document.getElementById('totalUmbrellaCount').value);
+            
+            if (isNaN(newCount) || newCount < 1) {
+                umbrellaManager.showAlert('올바른 우산 개수를 입력해주세요.', 'error');
+                return;
+            }
+
+            umbrellaManager.updateUmbrellaCount(newCount);
         });
 
         // 관리자 기능들
